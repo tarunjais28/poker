@@ -33,15 +33,15 @@ impl Card {
 }
 
 fn determine_type<'a>(cards: Vec<Card>) -> &'a str {
-    let mut numbers_count: Vec<usize> = vec![0;13];
-    let mut suit_count: Vec<usize> = vec![0;4];
+    let mut numbers_count: Vec<usize> = vec![0; 13];
+    let mut suit_count: Vec<usize> = vec![0; 4];
 
     for card in cards {
         suit_count[card.suits as usize] += 1;
         numbers_count[card.number as usize] += 1;
     }
 
-    if is_all_same(&suit_count, 5)
+    if check_occurrences(&suit_count, &[5])
         && numbers_count[8] == 1
         && numbers_count[9] == 1
         && numbers_count[10] == 1
@@ -49,21 +49,21 @@ fn determine_type<'a>(cards: Vec<Card>) -> &'a str {
         && numbers_count[12] == 1
     {
         "Royal Flush"
-    } else if is_all_same(&suit_count, 5) && is_continuous(&numbers_count) {
+    } else if check_occurrences(&suit_count, &[5]) && is_continuous(&numbers_count) {
         "Straight Flush"
-    } else if is_all_same(&numbers_count, 4) {
+    } else if check_occurrences(&numbers_count, &[4]) {
         "Four of a Kind"
-    } else if is_pair(&numbers_count, 3, 2) {
+    } else if check_occurrences(&numbers_count, &[3, 2]) {
         "Full House"
-    } else if is_all_same(&suit_count, 5) {
+    } else if check_occurrences(&suit_count, &[5]) {
         "Flush"
     } else if is_continuous(&numbers_count) {
         "Straight"
-    } else if is_all_same(&numbers_count, 3) {
+    } else if check_occurrences(&numbers_count, &[3]) {
         "Three of a Kind"
-    } else if is_pair(&numbers_count, 2, 2) {
+    } else if check_occurrences(&numbers_count, &[2, 2]) {
         "Two Pair"
-    } else if is_all_same(&numbers_count, 2) {
+    } else if check_occurrences(&numbers_count, &[2]) {
         "One Pair"
     } else {
         "High Card"
@@ -86,23 +86,19 @@ fn is_continuous(count: &[usize]) -> bool {
     false
 }
 
-fn is_all_same(count: &[usize], times: usize) -> bool {
-    count.iter().any(|&num| num == times)
-}
-
-fn is_pair(count: &Vec<usize>, times1: usize, times2: usize) -> bool {
-    let mut found_first = false;
-    let mut found_second = false;
+fn check_occurrences(count: &[usize], times: &[usize]) -> bool {
+    let mut found = vec![false; times.len()]; // Tracks whether each times[i] is found
 
     for &num in count {
-        if num == times1 && !found_first {
-            found_first = true;
-        } else if num == times2 {
-            found_second = true;
+        for (i, &time) in times.iter().enumerate() {
+            if num == time && !found[i] {
+                found[i] = true;
+                break; // Avoid multiple matches for the same element
+            }
         }
     }
 
-    found_first && found_second
+    found.iter().all(|&x| x) // Return true only if all patterns are found
 }
 
 fn main() {
